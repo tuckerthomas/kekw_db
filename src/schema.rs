@@ -1,4 +1,6 @@
-table! {
+// @generated automatically by Diesel CLI.
+
+diesel::table! {
     periods (id) {
         id -> Int4,
         start_day -> Int8,
@@ -7,7 +9,7 @@ table! {
     }
 }
 
-table! {
+diesel::table! {
     rolls (id) {
         id -> Int4,
         selection_1 -> Int4,
@@ -18,7 +20,7 @@ table! {
     }
 }
 
-table! {
+diesel::table! {
     submissions (id) {
         id -> Int4,
         dis_user_id -> Varchar,
@@ -28,10 +30,10 @@ table! {
     }
 }
 
-joinable!(rolls -> periods (period_id));
-joinable!(submissions -> periods (period_id));
+diesel::joinable!(rolls -> periods (period_id));
+diesel::joinable!(submissions -> periods (period_id));
 
-allow_tables_to_appear_in_same_query!(
+diesel::allow_tables_to_appear_in_same_query!(
     periods,
     rolls,
     submissions,
