@@ -100,9 +100,6 @@ pub fn delete_moviesub<'a>(
     pool: &Pool<ConnectionManager<PgConnection>>,
     del_submission: &Submission,
 ) -> usize {
-    use crate::schema::submissions;
-    use crate::schema::submissions::dsl::*;
-
     diesel::delete(del_submission)
         .execute(&mut pool.get().unwrap())
         .expect("Error deleting submission")

@@ -22,8 +22,6 @@ pub fn get_roll_by_period(
     pool: &Pool<ConnectionManager<PgConnection>>,
     search_period: &Period,
 ) -> Result<Roll> {
-    use crate::schema::rolls::dsl::*;
-
     match Roll::belonging_to(search_period).first::<Roll>(&mut pool.get()?) {
         Ok(roll) => Ok(roll),
         Err(e) => Err(Box::new(e)),
