@@ -30,7 +30,7 @@ pub fn get_periods(pool: &Pool<ConnectionManager<PgConnection>>) -> Result<Vec<P
     match periods
         .order(id.desc())
         .limit(10)
-        .load::<Period>(&pool.get()?)
+        .load::<Period>(&mut pool.get()?)
         {
             Ok(period) => return Ok(period),
             Err(e) => Err(Box::new(e)),
@@ -43,7 +43,7 @@ pub fn get_most_recent_period(pool: &Pool<ConnectionManager<PgConnection>>) -> R
     match periods
         .order(id.desc())
         .filter(end_day.is_null())
-        .first::<Period>(&pool.get()?)
+        .first::<Period>(&mut pool.get()?)
     {
         Ok(period) => return Ok(period),
         Err(e) => Err(Box::new(e)),
@@ -58,7 +58,7 @@ pub fn get_most_recent_closed_period(
     match periods
         .order(id.desc())
         .filter(end_day.is_not_null())
-        .first::<Period>(&pool.get()?)
+        .first::<Period>(&mut pool.get()?)
     {
         Ok(period) => Ok(period),
         Err(e) => Err(Box::new(e)),
@@ -77,7 +77,7 @@ pub fn create_period<'a>(pool: &Pool<ConnectionManager<PgConnection>>) -> Result
 
     match diesel::insert_into(periods::table)
         .values(&new_period)
-        .execute(&pool.get()?)
+        .execute(&mut pool.get()?)
     {
         Ok(num_values) => Ok(num_values),
         Err(e) => Err(Box::new(e)),
@@ -94,7 +94,7 @@ pub fn reopen_period<'a>(
 
     match diesel::update(periods::table)
         .set(&period_to_end)
-        .execute(&pool.get()?)
+        .execute(&mut pool.get()?)
     {
         Ok(num_values) => Ok(num_values),
         Err(e) => Err(Box::new(e)),
@@ -111,7 +111,7 @@ pub fn end_period<'a>(
 
     match diesel::update(periods::table)
         .set(&period_to_end)
-        .get_result(&pool.get()?)
+        .get_result(&mut pool.get()?)
     {
         Ok(updated_period) => Ok(updated_period),
         Err(e) => Err(Box::new(e)),
@@ -129,7 +129,7 @@ pub fn set_vote_message<'a>(
 
     match diesel::update(periods::table)
         .set(&period)
-        .get_result(&pool.get()?)
+        .get_result(&mut pool.get()?)
     {
         Ok(updated_period) => Ok(updated_period),
         Err(e) => Err(Box::new(e)),

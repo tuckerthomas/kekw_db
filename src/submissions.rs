@@ -6,14 +6,14 @@ use crate::models::submission::Submission;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Sync + Send>>;
 
-pub fn get_moviesubs(conn: &PgConnection, cur_period: &Period) -> Vec<Submission> {
+pub fn get_moviesubs(pool: &Pool<ConnectionManager<PgConnection>>, cur_period: &Period) -> Vec<Submission> {
     use crate::schema::submissions::dsl::*;
 
     let cur_period_id = cur_period.id;
 
     let results = submissions
         .filter(period_id.eq(cur_period_id))
-        .load::<Submission>(conn)
+        .load::<Submission>(&mut pool.get().unwrap())
         .expect("Error loading submissions");
 
     return results;
@@ -23,7 +23,7 @@ pub fn get_all_moviesubs(pool: &Pool<ConnectionManager<PgConnection>>) -> Vec<Su
     use crate::schema::submissions::dsl::*;
 
     let results = submissions
-        .load::<Submission>(&pool.get().unwrap())
+        .load::<Submission>(&mut pool.get().unwrap())
         .expect("Error loading submissions");
 
     return results;
@@ -37,7 +37,7 @@ pub fn get_submission_by_id(
 
     match submissions
         .filter(id.eq(search_id))
-        .first::<Submission>(&pool.get()?)
+        .first::<Submission>(&mut pool.get()?)
     {
         Ok(submission) => Ok(submission),
         Err(e) => Err(Box::new(e)),
@@ -53,7 +53,7 @@ pub fn get_submission_by_period_and_user(
 
     match Submission::belonging_to(search_period)
         .filter(dis_user_id.eq(user_id))
-        .first::<Submission>(&pool.get()?)
+        .first::<Submission>(&mut pool.get()?)
     {
         Ok(submission) => Ok(submission),
         Err(e) => Err(Box::new(e)),
@@ -62,7 +62,7 @@ pub fn get_submission_by_period_and_user(
 
 use crate::models::submission::NewSubmission;
 pub fn create_moviesub<'a>(
-    conn: &PgConnection,
+    conn: &mut PgConnection,
     dis_user_id: &'a str,
     title: &'a str,
     link: &'a str,
@@ -89,7 +89,7 @@ pub fn update_moviesub<'a>(
 ) -> Result<usize> {
     match diesel::update(&moviesub_to_update)
         .set(&moviesub_to_update)
-        .execute(&pool.get()?)
+        .execute(&mut pool.get()?)
     {
         Ok(num_values) => Ok(num_values),
         Err(e) => Err(Box::new(e)),
@@ -104,12 +104,12 @@ pub fn delete_moviesub<'a>(
     use crate::schema::submissions::dsl::*;
 
     diesel::delete(del_submission)
-        .execute(&pool.get().unwrap())
+        .execute(&mut pool.get().unwrap())
         .expect("Error deleting submission")
 }
 
 pub fn check_prev_sub<'a>(
-    conn: &PgConnection,
+    conn: &mut PgConnection,
     cur_period_id: i32,
     check_dis_user_id: &'a str,
 ) -> Vec<Submission> {
